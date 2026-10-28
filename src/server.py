@@ -104,8 +104,13 @@ def _load(name):
 def summary():
     camp = _load("campaigns.json")
     return {"stats": stats, "recent": list(recent)[:25], "metrics": _load("metrics.json"),
-            "adversarial": _load("adversarial.json"), "agent_benchmark": _load("agent_benchmark.json"),
+            "adversarial": _load("adversarial.json"), "email_metrics": _load("email_metrics.json"), "agent_benchmark": _load("agent_benchmark.json"),
             "campaigns": (camp["campaigns"][:12] if camp else []), "campaign_total": len(camp["campaigns"]) if camp else 0}
+
+
+@app.get("/logo.png")
+def logo():
+    return FileResponse(Path(__file__).resolve().parent / "assets" / "logo.png")
 
 
 @app.get("/")

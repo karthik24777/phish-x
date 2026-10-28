@@ -30,7 +30,8 @@ async function api(path, url, timeoutMs) {
 }
 
 async function isAllowed(host) {
-  const { allow = {} } = await chrome.storage.local.get("allow");
+  const { allow = {}, trusted = {} } = await chrome.storage.local.get(["allow", "trusted"]);
+  if (trusted[host]) return true;               // "I trust this site": exact host, until you remove it in the popup
   return !!allow[host] && allow[host] > Date.now();
 }
 

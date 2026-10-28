@@ -57,6 +57,8 @@ function applyVerdict(r, opts = {}) {
   (r.evidence || []).forEach((t) => ul.appendChild(el("li", "", t)));
   $("why").hidden = !(r.evidence && r.evidence.length);
   $("actions").hidden = false;
+  // A site pretending to be a known brand is certainly not one to trust, so don't offer it.
+  $("btn-trust").hidden = !!r.impersonates;
   if (opts.afterSandbox) $("btn-sandbox").hidden = true;
 }
 
@@ -195,6 +197,23 @@ $("btn-proceed").addEventListener("click", async () => {
   const { allow = {} } = await chrome.storage.local.get("allow");
   allow[host] = Date.now() + ALLOW_MS;
   await chrome.storage.local.set({ allow });
+  location.replace(target);
+});
+
+let trustArmed = false;
+$("btn-trust").addEventListener("click", async () => {
+  const b = $("btn-trust");
+  const host = new URL(target).hostname;
+  if (!trustArmed) {
+    trustArmed = true;
+    b.classList.add("armed");
+    b.textContent = "Click again to stop warning about " + host + " (undo anytime in the extension popup)";
+    setTimeout(() => { trustArmed = false; b.classList.remove("armed"); b.textContent = "I know this site: always trust it"; }, 7000);
+    return;
+  }
+  const { trusted = {} } = await chrome.storage.local.get("trusted");
+  trusted[host] = Date.now();
+  await chrome.storage.local.set({ trusted });
   location.replace(target);
 });
 

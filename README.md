@@ -8,12 +8,17 @@ does the analysis; a dashboard at http://127.0.0.1:8765/ shows results.
 Chromium for the sandbox. Then load `extension/` in Chrome: chrome://extensions -> Developer mode -> Load unpacked.
 Dataset: `data/raw_urls.csv` (labelled good/bad URLs).
 
+## Run like an app (Windows)
+- `start.bat` starts everything and opens the dashboard.
+- `install_autostart.bat` (run once, after start.bat has trained the models) makes the service start silently at every login, so the extension always has protection. `uninstall_autostart.bat` reverses it.
+- The autostart scripts were written for Windows but could not be tested on Windows by the author of this package.
+
 ## Modules
 | Module | File(s) | What it does |
 |---|---|---|
 | Detection engine | features.py, train.py, ensemble.py, predict.py | 22 URL features; LR / Random Forest / XGBoost / voting ensemble; SHAP explanations |
 | Brand protection | brands.py | Trusted official domains; catches look-alike domains (homoglyphs, brand in subdomain) |
-| Warning extension | extension/ | Checks each navigation; shows a warning page; offers "inspect in sandbox" |
+| Warning extension | extension/ | Checks each navigation; shows a warning page; offers "inspect in sandbox"; "always trust this site" button (two-click confirm, exact host, removable in the popup; not offered for brand look-alikes) |
 | Sandbox (static) | sandbox.py | Fetches the page on the server, parses forms, no scripts run |
 | Sandbox (dynamic) | sandbox_dynamic.py | Isolated headless Chromium, fills SYNTHETIC data, cancels every submission, reports what the page asks for and the likely attacker objective |
 | Investigation agent | agent.py, benchmark_agent.py | Chooses which tools to run per link (URL, DNS, redirects, TLS, static, dynamic) and explains its reasoning |

@@ -1,1 +1,6 @@
+__pycache__/
+*.pyc
+models/*.joblib
+!models/email_text.joblib
 data/raw_urls.csv
+*.log
