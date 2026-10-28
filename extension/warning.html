@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PHISH-X — Link warning</title>
+<link rel="stylesheet" href="warning.css">
+</head>
+<body class="state-loading">
+<main class="wrap">
+
+  <header class="brandbar">
+    <img src="icons/48.png" alt="" width="28" height="28">
+    <span>PHISH-X Link Guard</span>
+  </header>
+
+  <section class="hero" aria-live="polite">
+    <h1 id="headline">Checking this link…</h1>
+    <p id="sub" class="sub">PHISH-X replaced this page with a check. Nothing you type here goes to the site.</p>
+    <div class="url" id="target" title=""></div>
+
+    <div class="meter" id="meter" hidden>
+      <div class="meter-top">
+        <span class="meter-num" id="score">0</span><span class="meter-of">/ 100 risk</span>
+        <span class="chip" id="chip"></span>
+      </div>
+      <div class="bar"><i id="barfill"></i></div>
+    </div>
+  </section>
+
+  <section class="card" id="why" hidden>
+    <h2>Why this link was flagged</h2>
+    <ul id="evidence" class="plain"></ul>
+  </section>
+
+  <section class="actions" id="actions" hidden>
+    <button id="btn-back" class="btn primary">Go back to safety</button>
+    <button id="btn-sandbox" class="btn secondary">Check it in the sandbox</button>
+    <button id="btn-proceed" class="btn link">Proceed anyway (not recommended)</button>
+  </section>
+
+  <section class="card" id="sandbox" hidden>
+    <h2 id="sb-title">Sandbox inspection</h2>
+    <p class="note" id="sb-status"></p>
+    <div id="sb-body"></div>
+  </section>
+
+  <footer class="foot">
+    The sandbox opens the page on the PHISH-X service, not in your browser. It reads the page but runs no scripts
+    and submits nothing, so your device and your accounts are never involved.
+  </footer>
+</main>
+<script src="warning.js"></script>
+</body>
+</html>

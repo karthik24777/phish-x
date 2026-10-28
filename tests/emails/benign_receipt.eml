@@ -1,0 +1,8 @@
+From: Amazon.in <auto-confirm@amazon.in>
+To: student@example.com
+Subject: Your order has shipped
+Authentication-Results: mx.google.com; spf=pass; dkim=pass; dmarc=pass
+Content-Type: text/plain; charset="utf-8"
+
+Your package is on the way and will arrive by Friday. Track it at https://www.amazon.in/gp/your-account/order-details
+Thanks for shopping with us.

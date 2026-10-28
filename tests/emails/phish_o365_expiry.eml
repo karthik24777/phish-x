@@ -1,0 +1,9 @@
+From: Microsoft Account Team <no-reply@microsoft365-password-expiry.site>
+To: staff@example.com
+Subject: Your password expires today - confirm your password
+Content-Type: text/plain; charset="utf-8"
+
+Hello,
+Your Microsoft 365 password expires today. To keep access to your mailbox, sign in to verify your account:
+http://microsoft365-password-expiry.site/owa/login
+Failure to confirm your password will lead to the account being locked. IT Support Team

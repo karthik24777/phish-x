@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PHISH-X Dashboard</title>
+<style>
+:root{--bg:#f5f7fa;--card:#fff;--ink:#14213d;--mut:#5b6678;--line:#e2e7ee;--acc:#1f5fbf;--bad:#c62828;--warn:#b26a00;--ok:#1b7f3b}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1420;--card:#172033;--ink:#e8edf6;--mut:#9aa7bd;--line:#26324a;--acc:#6ea8ff;--bad:#ff7b72;--warn:#e3b341;--ok:#56d364}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
+header{padding:18px 16px;border-bottom:1px solid var(--line);background:var(--card)}
+header h1{margin:0;font-size:20px}header p{margin:2px 0 0;color:var(--mut);font-size:13px}
+main{max-width:1100px;margin:0 auto;padding:16px;display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto}
+.card h2{margin:0 0 10px;font-size:16px}.note{color:var(--mut);font-size:12.5px;margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.stat b{display:block;font-size:26px}.stat span{color:var(--mut);font-size:12.5px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mut);font-weight:600}
+.tag{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid currentColor}
+.PHISHING{color:var(--bad)}.SUSPICIOUS{color:var(--warn)}.SAFE{color:var(--ok)}
+textarea,input{width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:110px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+button{padding:8px 14px;border:0;border-radius:6px;background:var(--acc);color:#fff;font:inherit;cursor:pointer}
+button.alt{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+button:disabled{opacity:.5}
+pre{white-space:pre-wrap;word-break:break-word;margin:0;font-size:13px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+ul{margin:6px 0;padding-left:20px}
+</style></head><body>
+<header><h1>PHISH-X</h1><p>Local protection service dashboard. Everything on this page is served from your own machine (127.0.0.1).</p></header>
+<main>
+<section class="card"><h2>Live counters</h2><div class="stats" id="stats"></div></section>
+
+<section class="card"><h2>Analyse something</h2>
+<input id="url" placeholder="Paste a URL, e.g. http://sbi-kyc-update.example/login">
+<div class="row"><button id="bCheck">Quick check</button><button id="bBox" class="alt">Sandbox (page inspection)</button><button id="bAgent" class="alt">Investigation agent</button></div>
+<textarea id="eml" placeholder="Or paste a raw email (Gmail: ⋮ → Show original)" style="margin-top:12px"></textarea>
+<div class="row"><button id="bMail">Analyse email</button></div>
+<div id="out" style="margin-top:12px"></div></section>
+
+<section class="card"><h2>Recent checks (memory only, never saved to disk)</h2><div id="recent"></div></section>
+<div class="grid2">
+<section class="card"><h2>Model comparison (held-out test)</h2><div id="models"></div><div class="note" id="modelnote"></div></section>
+<section class="card"><h2>Alert threshold trade-off</h2><div id="thr"></div><div class="note">Lower threshold = more phishing caught, but more genuine links flagged. The extension warns at 70 and only adds page inspection in the 40–69 band.</div></section>
+</div>
+<section class="card"><h2>Evasion tests (attacker disguises a URL the model had caught)</h2><div id="adv"></div><div class="note" id="advnote"></div></section>
+<section class="card"><h2>Investigation agent vs fixed pipeline</h2><div id="agent"></div><div class="note">10 cases (5 local test pages, 5 link-only). Both got every case right; the agent used fewer tool calls. Small sample, so treat it as a demonstration, not proof.</div></section>
+<section class="card"><h2>Phishing campaigns found in the dataset</h2><div id="camp"></div><div class="note">Groups of URLs sharing the same page path across many domains. The dataset mixes sources, so some templates reflect how it was collected.</div></section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+// All text goes in through textContent so attacker-controlled strings can never become markup.
+function el(tag,txt,cls){const e=document.createElement(tag);if(txt!==undefined&&txt!==null)e.textContent=String(txt);if(cls)e.className=cls;return e}
+function vcls(v){return v==="PHISHING"?"PHISHING":v==="SUSPICIOUS"?"SUSPICIOUS":"SAFE"}
+function tag(v){return el("span",v,"tag "+vcls(v))}
+function table(head,rows){const t=el("table"),h=el("tr");head.forEach(x=>h.appendChild(el("th",x)));t.appendChild(h);
+  rows.forEach(r=>{const tr=el("tr");r.forEach(c=>{const td=el("td");if(c instanceof Node)td.appendChild(c);else td.textContent=c;tr.appendChild(td)});t.appendChild(tr)});return t}
+const pct=x=>(x*100).toFixed(1)+"%";
+async function post(path,body){const r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}
+
+function show(r,title){
+  const o=$("out");o.replaceChildren();
+  const h=el("div");h.append(tag(r.verdict)," ",el("b",r.risk_score+"/100")," ",el("span",title||"",null));o.appendChild(h);
+  const add=(name,arr)=>{if(arr&&arr.length){o.appendChild(el("b",name));const u=el("ul");arr.forEach(x=>u.appendChild(el("li",typeof x==="string"?x:(x.text||x.objective+": "+x.why||JSON.stringify(x)))));o.appendChild(u)}};
+  add("Evidence",r.evidence);
+  add("Findings",r.findings);
+  if(r.reasoning_trail)add("Agent reasoning",r.reasoning_trail.map(s=>typeof s==="string"?s:JSON.stringify(s)));
+  if(r.likely_objectives&&r.likely_objectives.length)add("Likely attacker objective",r.likely_objectives);
+  if(r.page&&r.page.information_requested)add("Page asks for",r.page.information_requested.map(i=>i.label+" ("+i.risk+")"));
+  if(r.page&&r.page.interaction)o.appendChild(el("div",r.page.interaction,"note"));
+}
+async function run(fn,b){b.disabled=true;$("out").textContent="Working…";try{await fn()}catch(e){$("out").textContent="Error: "+e.message}b.disabled=false;load()}
+$("bCheck").onclick=e=>run(async()=>show(await post("/check",{url:$("url").value}),"quick check"),e.target);
+$("bBox").onclick=e=>run(async()=>show(await post("/sandbox",{url:$("url").value}),"after page inspection"),e.target);
+$("bAgent").onclick=e=>run(async()=>show(await post("/agent",{url:$("url").value}),"investigation agent"),e.target);
+$("bMail").onclick=e=>run(async()=>show(await post("/email",{raw:$("eml").value}),"email analysis"),e.target);
+
+async function load(){
+  const d=await (await fetch("/api/summary")).json();
+  const s=$("stats");s.replaceChildren();
+  [["Links checked",d.stats.checked],["Warnings shown",d.stats.blocked],["Sandbox runs",d.stats.sandboxed],["Campaigns found",d.campaign_total]].forEach(([k,v])=>{const c=el("div",null,"stat");c.append(el("b",v),el("span",k));s.appendChild(c)});
+  $("recent").replaceChildren(d.recent.length?table(["Time","Type","Item","Verdict","Score"],d.recent.map(r=>[r.t,r.kind,r.url,tag(r.verdict),r.score])):el("span","Nothing checked yet.","note"));
+  const m=d.metrics;if(m){
+    const names={logistic_regression:"Logistic Regression",random_forest:"Random Forest",xgboost:"XGBoost",ensemble:"Ensemble (voting)"};
+    $("models").replaceChildren(table(["Model","Accuracy","Recall","F1","AUC"],Object.entries(m.results).map(([k,v])=>[names[k]||k,pct(v.accuracy),pct(v.recall),pct(v.f1),v.roc_auc.toFixed(3)])));
+    const x=m.external_holdout_ensemble;
+    $("modelnote").textContent="Ensemble on a separate held-out set of "+m.external_holdout_size+" URLs: "+pct(x.accuracy)+" accuracy. The ensemble did not beat Random Forest alone; it is kept for stability and for explanations (SHAP).";
+    $("thr").replaceChildren(table(["Threshold","Phishing caught","Genuine flagged"],m.threshold_table.map(t=>[t.threshold,t.phishing_caught_pct+"%",t.legit_flagged_pct+"%"])));
+  }
+  const a=d.adversarial;if(a){
+    const rows=Object.keys(a.labels).map(k=>[a.labels[k],a.before.evasion[k].evaded_pct+"%",a.after_adversarial_training.evasion[k].evaded_pct+"%"]);
+    rows.push([el("b","Detection on unmodified URLs"),a.before.clean_detection_pct+"%",a.after_adversarial_training.clean_detection_pct+"%"]);
+    rows.push([el("b","Genuine links wrongly flagged"),a.before.legit_flagged_pct+"%",a.after_adversarial_training.legit_flagged_pct+"%"]);
+    $("adv").replaceChildren(table(["Disguise","Evaded before training","Evaded after training"],rows));
+    $("advnote").textContent="Training on disguised URLs reduces evasion but also raises false alarms on genuine links. This is a trade-off, not a free improvement.";
+  }
+  const g=d.agent_benchmark;if(g){
+    $("agent").replaceChildren(table(["Case","Truth","Agent","Calls","Fixed pipeline","Calls"],g.rows.map(r=>[r.case,r.truth,r.agent.verdict+" ("+r.agent.score+")",r.agent.calls,r.fixed.verdict+" ("+r.fixed.score+")",r.fixed.calls])));
+  }
+  $("camp").replaceChildren(d.campaigns.length?table(["#","Shared page path","URLs","Domains","Common TLDs"],d.campaigns.map(c=>[c.id,c.template,c.urls,c.domains,c.top_tlds.map(t=>t[0]).join(", ")])):el("span","No report found. Run campaigns.py.","note"));
+}
+load();setInterval(load,15000);
+</script></body></html>

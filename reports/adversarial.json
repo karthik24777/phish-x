@@ -1,0 +1,82 @@
+{
+  "warn_threshold": 70.0,
+  "labels": {
+    "homoglyph_host": "Swap letters in the domain (l\u21921, o\u21920)",
+    "leet_keywords": "Disguise scam words (login\u2192l0g1n)",
+    "split_keywords": "Break scam words with a hyphen (log-in)",
+    "percent_encode_path": "Percent-encode parts of the path",
+    "strip_query": "Remove the query string",
+    "trim_path": "Cut the path to one segment",
+    "benign_padding": "Append harmless-looking path",
+    "remove_hyphens_host": "Remove hyphens from the domain",
+    "combined": "Combined: split + trim + remove hyphens"
+  },
+  "before": {
+    "clean_detection_pct": 68.4,
+    "legit_flagged_pct": 2.7,
+    "evasion": {
+      "homoglyph_host": {
+        "evaded_pct": 5.2
+      },
+      "leet_keywords": {
+        "evaded_pct": 14.3
+      },
+      "split_keywords": {
+        "evaded_pct": 12.9
+      },
+      "percent_encode_path": {
+        "evaded_pct": 18.4
+      },
+      "strip_query": {
+        "evaded_pct": 11.1
+      },
+      "trim_path": {
+        "evaded_pct": 34.9
+      },
+      "benign_padding": {
+        "evaded_pct": 21.5
+      },
+      "remove_hyphens_host": {
+        "evaded_pct": 1.0
+      },
+      "combined": {
+        "evaded_pct": 39.1
+      }
+    },
+    "n_detected_tested": 4101
+  },
+  "after_adversarial_training": {
+    "clean_detection_pct": 74.9,
+    "legit_flagged_pct": 6.5,
+    "evasion": {
+      "homoglyph_host": {
+        "evaded_pct": 3.2
+      },
+      "leet_keywords": {
+        "evaded_pct": 8.1
+      },
+      "split_keywords": {
+        "evaded_pct": 8.2
+      },
+      "percent_encode_path": {
+        "evaded_pct": 10.8
+      },
+      "strip_query": {
+        "evaded_pct": 7.2
+      },
+      "trim_path": {
+        "evaded_pct": 13.9
+      },
+      "benign_padding": {
+        "evaded_pct": 5.8
+      },
+      "remove_hyphens_host": {
+        "evaded_pct": 0.9
+      },
+      "combined": {
+        "evaded_pct": 15.5
+      }
+    },
+    "n_detected_tested": 4496
+  }
+}

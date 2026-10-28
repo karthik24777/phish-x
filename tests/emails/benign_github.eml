@@ -1,0 +1,9 @@
+From: GitHub <notifications@github.com>
+To: student@example.com
+Subject: [phishx] New pull request: improve README
+Authentication-Results: mx.google.com; spf=pass; dkim=pass; dmarc=pass
+Content-Type: text/plain; charset="utf-8"
+
+A new pull request was opened in your repository.
+View it here: https://github.com/example/phishx/pull/12
+You are receiving this because you are watching this repository.

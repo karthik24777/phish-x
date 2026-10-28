@@ -1,0 +1,250 @@
+{
+ "summary": {
+  "cases": 10,
+  "agent": {
+   "correct": 10,
+   "avg_calls": 3.3,
+   "total_seconds": 24.7
+  },
+  "fixed": {
+   "correct": 10,
+   "avg_calls": 6.0,
+   "total_seconds": 28.4
+  }
+ },
+ "rows": [
+  {
+   "case": "harmless blog page (local)",
+   "truth": "benign",
+   "agent": {
+    "verdict": "SUSPICIOUS",
+    "score": 40,
+    "calls": 5,
+    "seconds": 2.01,
+    "tools": [
+     "url_analysis",
+     "dns_lookup",
+     "redirect_trace",
+     "static_inspect",
+     "dynamic_sandbox"
+    ]
+   },
+   "fixed": {
+    "verdict": "SUSPICIOUS",
+    "score": 40,
+    "calls": 6,
+    "seconds": 1.74
+   },
+   "agent_correct": true,
+   "fixed_correct": true
+  },
+  {
+   "case": "harmless contact form (local)",
+   "truth": "benign",
+   "agent": {
+    "verdict": "LIKELY SAFE",
+    "score": 36,
+    "calls": 5,
+    "seconds": 4.36,
+    "tools": [
+     "url_analysis",
+     "dns_lookup",
+     "redirect_trace",
+     "static_inspect",
+     "dynamic_sandbox"
+    ]
+   },
+   "fixed": {
+    "verdict": "LIKELY SAFE",
+    "score": 36,
+    "calls": 6,
+    "seconds": 4.3
+   },
+   "agent_correct": true,
+   "fixed_correct": true
+  },
+  {
+   "case": "ordinary member login (local)",
+   "truth": "benign",
+   "agent": {
+    "verdict": "SUSPICIOUS",
+    "score": 69,
+    "calls": 5,
+    "seconds": 4.33,
+    "tools": [
+     "url_analysis",
+     "dns_lookup",
+     "redirect_trace",
+     "static_inspect",
+     "dynamic_sandbox"
+    ]
+   },
+   "fixed": {
+    "verdict": "SUSPICIOUS",
+    "score": 69,
+    "calls": 6,
+    "seconds": 4.3
+   },
+   "agent_correct": true,
+   "fixed_correct": true
+  },
+  {
+   "case": "fake bank page: card, CVV, OTP (local)",
+   "truth": "phishing",
+   "agent": {
+    "verdict": "PHISHING",
+    "score": 75,
+    "calls": 5,
+    "seconds": 4.37,
+    "tools": [
+     "url_analysis",
+     "dns_lookup",
+     "redirect_trace",
+     "static_inspect",
+     "dynamic_sandbox"
+    ]
+   },
+   "fixed": {
+    "verdict": "PHISHING",
+    "score": 75,
+    "calls": 6,
+    "seconds": 4.34
+   },
+   "agent_correct": true,
+   "fixed_correct": true
+  },
+  {
+   "case": "JavaScript 3-step kit (local)",
+   "truth": "phishing",
+   "agent": {
+    "verdict": "PHISHING",
+    "score": 75,
+    "calls": 5,
+    "seconds": 9.37,
+    "tools": [
+     "url_analysis",
+     "dns_lookup",
+     "redirect_trace",
+     "static_inspect",
+     "dynamic_sandbox"
+    ]
+   },
+   "fixed": {
+    "verdict": "PHISHING",
+    "score": 75,
+    "calls": 6,
+    "seconds": 9.35
+   },
+   "agent_correct": true,
+   "fixed_correct": true
+  },
+  {
+   "case": "official PayPal sign-in",
+   "truth": "benign",
+   "agent": {
+    "verdict": "LIKELY SAFE",
+    "score": 10,
+    "calls": 1,
+    "seconds": 0.05,
+    "tools": [
+     "url_analysis"
+    ]
+   },
+   "fixed": {
+    "verdict": "LIKELY SAFE",
+    "score": 10,
+    "calls": 6,
+    "seconds": 1.14
+   },
+   "agent_correct": true,
+   "fixed_correct": true
+  },
+  {
+   "case": "Wikipedia",
+   "truth": "benign",
+   "agent": {
+    "verdict": "LIKELY SAFE",
+    "score": 10,
+    "calls": 1,
+    "seconds": 0.07,
+    "tools": [
+     "url_analysis"
+    ]
+   },
+   "fixed": {
+    "verdict": "LIKELY SAFE",
+    "score": 10,
+    "calls": 6,
+    "seconds": 1.15
+   },
+   "agent_correct": true,
+   "fixed_correct": true
+  },
+  {
+   "case": "ordinary news article",
+   "truth": "benign",
+   "agent": {
+    "verdict": "SUSPICIOUS",
+    "score": 52,
+    "calls": 2,
+    "seconds": 0.06,
+    "tools": [
+     "url_analysis",
+     "dns_lookup"
+    ]
+   },
+   "fixed": {
+    "verdict": "SUSPICIOUS",
+    "score": 52,
+    "calls": 6,
+    "seconds": 1.17
+   },
+   "agent_correct": true,
+   "fixed_correct": true
+  },
+  {
+   "case": "PayPal look-alike",
+   "truth": "phishing",
+   "agent": {
+    "verdict": "PHISHING",
+    "score": 100,
+    "calls": 2,
+    "seconds": 0.05,
+    "tools": [
+     "url_analysis",
+     "dns_lookup"
+    ]
+   },
+   "fixed": {
+    "verdict": "PHISHING",
+    "score": 100,
+    "calls": 6,
+    "seconds": 0.45
+   },
+   "agent_correct": true,
+   "fixed_correct": true
+  },
+  {
+   "case": "HDFC look-alike",
+   "truth": "phishing",
+   "agent": {
+    "verdict": "PHISHING",
+    "score": 100,
+    "calls": 2,
+    "seconds": 0.05,
+    "tools": [
+     "url_analysis",
+     "dns_lookup"
+    ]
+   },
+   "fixed": {
+    "verdict": "PHISHING",
+    "score": 100,
+    "calls": 6,
+    "seconds": 0.48
+   },
+   "agent_correct": true,
+   "fixed_correct": true
+  }
+ ]
+}

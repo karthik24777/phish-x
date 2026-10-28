@@ -1,0 +1,170 @@
+{
+  "train_size": 160000,
+  "test_size": 40000,
+  "external_holdout_size": 20000,
+  "results": {
+    "logistic_regression": {
+      "accuracy": 0.720275,
+      "precision": 0.7614384902973117,
+      "recall": 0.64155,
+      "f1": 0.6963718759328105,
+      "roc_auc": 0.8204679262500001
+    },
+    "random_forest": {
+      "accuracy": 0.867475,
+      "precision": 0.8781579624388989,
+      "recall": 0.85335,
+      "f1": 0.8655762647394446,
+      "roc_auc": 0.9472623775
+    },
+    "xgboost": {
+      "accuracy": 0.8552,
+      "precision": 0.8675116399379204,
+      "recall": 0.83845,
+      "f1": 0.8527332824815662,
+      "roc_auc": 0.9403410612499999
+    },
+    "ensemble": {
+      "accuracy": 0.861625,
+      "precision": 0.8760854869741563,
+      "recall": 0.8424,
+      "f1": 0.8589125946317963,
+      "roc_auc": 0.9442864137499999
+    }
+  },
+  "external_holdout_ensemble": {
+    "accuracy": 0.8545,
+    "precision": 0.8761672325976231,
+    "recall": 0.8257,
+    "f1": 0.8501853377265239,
+    "roc_auc": 0.940508495
+  },
+  "threshold_table": [
+    {
+      "threshold": 40,
+      "legit_flagged_pct": 20.18,
+      "phishing_caught_pct": 89.64
+    },
+    {
+      "threshold": 55,
+      "legit_flagged_pct": 8.51,
+      "phishing_caught_pct": 78.63
+    },
+    {
+      "threshold": 70,
+      "legit_flagged_pct": 2.85,
+      "phishing_caught_pct": 68.0
+    },
+    {
+      "threshold": 80,
+      "legit_flagged_pct": 1.16,
+      "phishing_caught_pct": 60.22
+    },
+    {
+      "threshold": 90,
+      "legit_flagged_pct": 0.33,
+      "phishing_caught_pct": 47.8
+    }
+  ],
+  "confusion_matrix_ensemble": [
+    [
+      17617,
+      2383
+    ],
+    [
+      3152,
+      16848
+    ]
+  ],
+  "top_features_xgboost": [
+    {
+      "feature": "suspicious_word_count",
+      "importance": 0.44684240221977234
+    },
+    {
+      "feature": "has_ip_host",
+      "importance": 0.13723011314868927
+    },
+    {
+      "feature": "has_port",
+      "importance": 0.06118296459317207
+    },
+    {
+      "feature": "num_query_params",
+      "importance": 0.04489545524120331
+    },
+    {
+      "feature": "double_slash_in_path",
+      "importance": 0.0392596572637558
+    },
+    {
+      "feature": "num_at",
+      "importance": 0.03640896454453468
+    },
+    {
+      "feature": "num_hyphens",
+      "importance": 0.026654059067368507
+    },
+    {
+      "feature": "num_digits",
+      "importance": 0.026652559638023376
+    },
+    {
+      "feature": "num_dots",
+      "importance": 0.026209373027086258
+    },
+    {
+      "feature": "num_underscore",
+      "importance": 0.02342037670314312
+    },
+    {
+      "feature": "num_subdomains",
+      "importance": 0.019248880445957184
+    },
+    {
+      "feature": "num_equal",
+      "importance": 0.01789485104382038
+    },
+    {
+      "feature": "path_length",
+      "importance": 0.015353195369243622
+    },
+    {
+      "feature": "is_shortener",
+      "importance": 0.014296066015958786
+    },
+    {
+      "feature": "num_question",
+      "importance": 0.012562909163534641
+    },
+    {
+      "feature": "digit_ratio",
+      "importance": 0.012080980464816093
+    },
+    {
+      "feature": "url_length",
+      "importance": 0.009502977132797241
+    },
+    {
+      "feature": "host_length",
+      "importance": 0.008760971017181873
+    },
+    {
+      "feature": "num_ampersand",
+      "importance": 0.007523864042013884
+    },
+    {
+      "feature": "https_token_in_path",
+      "importance": 0.0072183758020401
+    },
+    {
+      "feature": "entropy",
+      "importance": 0.0068009584210813046
+    },
+    {
+      "feature": "uses_https_scheme",
+      "importance": 0.0
+    }
+  ],
+  "seconds": 37.2
+}

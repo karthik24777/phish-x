@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>PHISH-X</title>
+<style>
+ body{margin:0;width:290px;font:14px/1.45 system-ui,Segoe UI,Arial,sans-serif;background:#141F3D;color:#EDEEF2}
+ .p{padding:16px}
+ h1{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+ .st{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:#1B2951;margin-bottom:12px}
+ .dot{width:10px;height:10px;border-radius:50%;background:#6b7280}
+ .ok .dot{background:#3fbf9a}.bad .dot{background:#E0604F}
+ .row{display:flex;justify-content:space-between;padding:4px 0;color:#AEB9CC}
+ .row b{color:#fff}
+ label{display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer}
+ small{display:block;margin-top:12px;color:#AEB9CC}
+</style></head>
+<body><div class="p">
+ <h1><img src="icons/32.png" width="22" height="22" alt="">PHISH-X Link Guard</h1>
+ <div class="st" id="st"><span class="dot"></span><span id="stxt">Checking service…</span></div>
+ <div class="row"><span>Links checked</span><b id="n1">–</b></div>
+ <div class="row"><span>Warnings shown</span><b id="n2">–</b></div>
+ <div class="row"><span>Sandbox inspections</span><b id="n3">–</b></div>
+ <label><input type="checkbox" id="en" checked> Protection on</label>
+ <small id="hint"></small>
+</div><script src="popup.js"></script></body></html>

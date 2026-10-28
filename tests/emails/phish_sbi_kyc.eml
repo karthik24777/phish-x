@@ -1,0 +1,11 @@
+From: "SBI Customer Care" <support@sbi-kyc-update-online.in>
+Reply-To: helpdesk@mail-collector.top
+To: student@example.com
+Subject: URGENT: Your account will be suspended within 24 hours - update KYC
+Authentication-Results: mx.google.com; spf=fail smtp.mailfrom=sbi-kyc-update-online.in; dkim=none; dmarc=fail
+Content-Type: text/html; charset="utf-8"
+
+<html><body><p>Dear Customer,</p>
+<p>Your SBI account has been blocked due to incomplete KYC. Update your KYC immediately or your account will be permanently closed.</p>
+<p><a href="http://sbi-kyc-update-online.in/verify/login.php">https://www.onlinesbi.sbi/kyc</a></p>
+<p>Enter your OTP and card details to confirm your identity. Security Team</p></body></html>
