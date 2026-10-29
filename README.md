@@ -13,6 +13,30 @@ Dataset: `data/raw_urls.csv` (labelled good/bad URLs).
 - `install_autostart.bat` (run once, after start.bat has trained the models) makes the service start silently at every login, so the extension always has protection. `uninstall_autostart.bat` reverses it.
 - The autostart scripts were written for Windows but could not be tested on Windows by the author of this package.
 
+## System-wide link guard (links clicked in WhatsApp, Outlook, Word, etc.)
+Windows sends every link clicked in another app to the default browser. `install_link_handler.bat` registers
+PHISH-X Link Guard as a browser; set it as default once (Settings > Apps > Default apps). Then:
+- safe link: opens straight away in your real browser (no popup);
+- dangerous link: a small popup window shows the verdict, reasons, "Check it in the sandbox" and "Open anyway";
+- if anything fails (service cannot start etc.) it fails OPEN and just opens the link.
+`uninstall_link_handler.bat` removes it. Tested: decision logic, popup page, fail-open (with a stub browser on Linux).
+NOT tested: the Windows registry registration and Windows' own default-app prompt (no Windows machine available).
+Phones (WhatsApp on Android/iOS) cannot be covered this way: that needs a native mobile app, which is not built.
+If you use both the extension and this guard, a link can be checked twice. Pick one for daily use.
+
+## Sandbox replay
+Press "Open it in the sandbox" (dashboard or popup) to watch what PHISH-X did: screenshots of the page, the fake
+data typed in (highlighted), the submission cancelled, the destination, and every network request.
+
+## Review demo
+`start_demo.bat` (Windows) or `./start_demo.sh` starts the dashboard plus two harmless local demo phishing pages so the
+sandbox replay can be shown. Full demo script, numbers and Q&A: `docs/REVIEW_GUIDE.md`.
+
+## Hosted (optional) and roadmap
+`Dockerfile` / `render.yaml` run a lite (XGBoost-only), privacy-mode copy of the service online
+(no links stored, rate-limited, static sandbox only). Planned next: Android app (registers as a browser so links in
+WhatsApp are checked first) and a Windows installer, then store listings.
+
 ## Modules
 | Module | File(s) | What it does |
 |---|---|---|

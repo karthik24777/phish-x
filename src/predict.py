@@ -11,14 +11,15 @@ Usage:
 
 import sys
 import numpy as np
-import shap
+import xgboost as xgb_lib
 
 from features import features_to_row, explain, FEATURE_NAMES
 from ensemble import load_all
 
 _M = load_all()
 _ens = _M["ensemble"]
-_explainer = shap.TreeExplainer(_M["xgb"])
+MODE = _M.get("mode", "full")
+_booster = _M["xgb"].get_booster()
 
 FEATURE_LABELS = {
     "url_length": "URL length", "host_length": "domain length", "path_length": "path length",
@@ -34,8 +35,9 @@ FEATURE_LABELS = {
 
 
 def top_factors(row, k=5):
-    """Per-prediction explanation: SHAP contribution of each feature (XGBoost log-odds)."""
-    sv = _explainer.shap_values(row)[0]
+    """Per-prediction explanation: each feature's contribution in XGBoost log-odds. These are exact
+    TreeSHAP values (XGBoost computes them natively; verified identical to the shap library)."""
+    sv = _booster.predict(xgb_lib.DMatrix(row), pred_contribs=True)[0][:-1]
     order = np.argsort(-np.abs(sv))[:k]
     return [{"feature": FEATURE_NAMES[i], "label": FEATURE_LABELS.get(FEATURE_NAMES[i], FEATURE_NAMES[i]),
              "value": float(row[0][i]), "contribution": round(float(sv[i]), 3),

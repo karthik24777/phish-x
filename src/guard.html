@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PHISH-X: link check</title>
+<style>
+:root{--bg:#f3f6f5;--card:#fff;--ink:#17223b;--mut:#5d6b7c;--line:#dfe7e4;--green:#2a6a52;--bad:#c0392b;--badbg:#fdecea;--warn:#a96500;--warnbg:#fff4de;--ok:#1b7f4a;--okbg:#e3f5ea}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1420;--card:#151f31;--ink:#e8eef6;--mut:#9aa9bd;--line:#25324a;--green:#58c19a;--bad:#ff8a7d;--badbg:#3a1b1b;--warn:#f0c060;--warnbg:#3a2e12;--ok:#5fd38d;--okbg:#14301f}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Segoe UI",sans-serif}
+main{max-width:820px;margin:0 auto;padding:16px;display:grid;gap:12px}
+.brand{font-weight:700;display:flex;align-items:center;gap:8px;color:var(--green)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.verdict{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;border-radius:12px;padding:14px}
+.v-bad{background:var(--badbg);color:var(--bad)}.v-warn{background:var(--warnbg);color:var(--warn)}.v-ok{background:var(--okbg);color:var(--ok)}
+.gauge{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(currentColor calc(var(--p)*1%),rgba(128,128,128,.25) 0)}
+.gauge i{width:58px;height:58px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-style:normal;font-weight:700;font-size:20px;color:var(--ink)}
+.verdict h1{margin:0;font-size:19px}.verdict p{margin:2px 0 0;color:var(--ink);font-size:13.5px}
+.url{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;word-break:break-all;background:var(--bg);border-radius:8px;padding:8px 10px;margin-top:10px}
+h2{font-size:14px;margin:0 0 4px}ul{margin:4px 0;padding-left:20px}li{margin:3px 0;font-size:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button{padding:10px 16px;border-radius:8px;font:inherit;cursor:pointer;border:1px solid var(--green);background:transparent;color:var(--green)}
+button.main{background:var(--green);color:#fff;font-weight:600}
+button.risky{border-color:transparent;color:var(--mut);text-decoration:underline;padding:10px 6px}
+button.armed{color:var(--bad);font-weight:700}
+button:disabled{opacity:.5;cursor:wait}.note{color:var(--mut);font-size:12.5px}
+</style></head><body><main>
+<div class="brand">🛡 PHISH-X Link Guard</div>
+<div class="card"><div id="v" class="verdict v-warn"><div class="gauge" style="--p:0"><i id="sc">…</i></div><div><h1 id="h">Checking this link…</h1><p id="s">Nothing has been opened yet.</p></div></div>
+<div class="url" id="u"></div></div>
+<div class="card" id="why" hidden><h2>Why</h2><ul id="wl"></ul></div>
+<div class="card" id="sb" hidden><h2 id="sbt">Sandbox inspection</h2><p class="note" id="sbs"></p><div id="sbb"></div></div>
+<div class="row" id="act" hidden>
+ <button class="main" id="back">Don't open it</button>
+ <button id="box">Check it in the sandbox</button>
+ <button class="risky" id="go">Open anyway (not recommended)</button>
+</div>
+<p class="note">The sandbox opens the page on the PHISH-X service inside an isolated browser with fake data. Your accounts are never involved.</p>
+</main>
+<script src="/replay.js"></script>
+<script>
+// Text from the checked site is only ever inserted with textContent, never as markup.
+const $=id=>document.getElementById(id);
+const target=new URLSearchParams(location.search).get("u")||"";
+function el(t,x,c){const e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=String(x);return e}
+function ok(){try{const u=new URL(target);return u.protocol==="http:"||u.protocol==="https:"}catch{return false}}
+async function post(p,extra){const r=await fetch(p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.assign({url:target},extra||{}))});if(!r.ok)throw new Error("service returned "+r.status);return r.json()}
+const HEAD={PHISHING:["This link looks dangerous","Do not enter passwords, card details or codes.","v-bad"],
+ SUSPICIOUS:["This link looks suspicious","A scam could not be ruled out. Be careful.","v-warn"],
+ "LIKELY SAFE":["No warning signs found","Not a guarantee. Stay alert.","v-ok"]};
+function render(r){
+ const [h,s,c]=HEAD[r.verdict]||HEAD.SUSPICIOUS;
+ $("v").className="verdict "+c;$("h").textContent=h;
+ $("s").textContent=r.impersonates?"This address is pretending to be "+r.impersonates+". It is not the real site.":s;
+ $("sc").textContent=r.risk_score;document.querySelector(".gauge").style.setProperty("--p",r.risk_score);
+ const ul=$("wl");ul.replaceChildren();(r.evidence||[]).forEach(t=>ul.appendChild(el("li",t)));$("why").hidden=!(r.evidence&&r.evidence.length);
+ $("act").hidden=false;
+}
+function renderBox(r){
+ const p=r.page||{},b=$("sbb");b.replaceChildren();$("sb").hidden=false;
+ if(!p.fetched){$("sbs").textContent="The sandbox could not open this page: "+(p.error||"unknown error")+". The verdict above is from the link text alone.";return}
+ $("sbs").textContent="Opened in the sandbox. Page title: "+(p.title||"(none)")+".";
+ const info=p.information_requested||[];
+ if(info.length){b.appendChild(el("h2","The page asks for"));const u=el("ul");info.forEach(i=>u.appendChild(el("li",i.label+" ("+i.risk+")")));b.appendChild(u)}
+ else b.appendChild(el("p","No data-collection fields were found.","note"));
+ const ob=p.likely_objectives||[];
+ if(ob.length){b.appendChild(el("h2","What the attacker likely wants"));const u=el("ul");ob.forEach(o=>u.appendChild(el("li",o.objective+": "+o.why)));b.appendChild(u)}
+ (p.forms||[]).forEach(f=>{if(f.sends_to_other_domain)b.appendChild(el("p","Data would be sent to a different website: "+f.action,"note"))});
+ b.appendChild(el("p",p.interaction||"","note"));
+}
+$("back").onclick=()=>{window.close();document.body.replaceChildren(el("p","You can close this window. The link was not opened.","note"))};
+$("box").onclick=async()=>{const b=$("box");b.disabled=true;$("sb").hidden=false;$("sbs").textContent="Opening the page in the sandbox… this can take up to 30 seconds.";
+ try{const r=await post("/sandbox",{replay:true});render(r);renderBox(r);window.renderReplay($("sbb"),r.page)}catch(e){$("sbs").textContent="Sandbox check failed: "+e.message;b.disabled=false}};
+let armed=false;
+$("go").onclick=()=>{const b=$("go");
+ if(!armed){armed=true;b.classList.add("armed");b.textContent="Click again to open it anyway. You may lose passwords or money.";
+  setTimeout(()=>{armed=false;b.classList.remove("armed");b.textContent="Open anyway (not recommended)"},6000);return}
+ if(ok()){window.open(target,"_blank","noopener");window.close()}};
+(async()=>{
+ $("u").textContent=target;
+ if(!ok()){$("h").textContent="Nothing to check";$("s").textContent="This window was opened without a valid link.";return}
+ try{render(await post("/check"))}catch(e){$("h").textContent="PHISH-X service is not reachable";$("s").textContent=e.message}
+})();
+</script></body></html>

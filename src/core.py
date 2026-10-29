@@ -54,13 +54,14 @@ def assess(url: str):
     return base
 
 
-@lru_cache(maxsize=512)
-def inspect_page(url: str):
-    """Dynamic sandbox when Playwright + Chromium are available, else the static inspector."""
+@lru_cache(maxsize=256)
+def inspect_page(url: str, replay: bool = False):
+    """Dynamic sandbox when Playwright + Chromium are available, else the static inspector.
+    replay=True also records screenshots and a step-by-step log for the visual replay (bigger result)."""
     if SANDBOX_MODE != "static" and dyn.available():
         try:
             with _sem:
-                r = dyn.investigate(url)
+                r = dyn.investigate(url, replay=replay)
             r.pop("screenshot", None)
             return r
         except Exception as e:  # browser missing / crashed -> fall back, and say so
@@ -112,9 +113,9 @@ def combine(base: dict, page: dict):
     return max(0, min(100, score)), reasons
 
 
-def full_report(url: str):
+def full_report(url: str, replay: bool = False):
     base = dict(assess(url))
-    page = inspect_page(url)
+    page = inspect_page(url, replay)
     score, reasons = combine(base, page)
     verdict, level = verdict_for(score)
     return {"url": url, "verdict": verdict, "risk_level": level, "risk_score": score,

@@ -20,6 +20,7 @@ attacker could in theory slip a request past the check. Real isolation needs the
 container/VM whose network can only reach the public internet. Some kits detect headless browsers and
 show a harmless page; the report only says what was observed.
 """
+import base64
 import json
 import re
 import time
@@ -101,7 +102,25 @@ def _body_info(req):
     return body, names
 
 
-def investigate(url: str, test_allow=()):
+def _shot(page, label):
+    """Small JPEG of the sandbox browser for the replay view, cropped to where the page actually has content."""
+    try:
+        box = page.evaluate("""() => { let r = 0, b = 0;
+            document.querySelectorAll('body *').forEach(e => { const q = e.getBoundingClientRect();
+              if (q.width > 0 && q.height > 0) { r = Math.max(r, q.right); b = Math.max(b, q.bottom); } });
+            return [r, b]; }""")
+        w = int(min(1100, max(560, box[0] + 60)))
+        h = int(min(800, max(300, box[1] + 60)))
+        data = page.screenshot(type="jpeg", quality=55, clip={"x": 0, "y": 0, "width": w, "height": h})
+        return "data:image/jpeg;base64," + base64.b64encode(data).decode()
+    except Exception:
+        return None
+
+
+HIGHLIGHT_JS = """() => document.querySelectorAll('[data-phishx-filled="1"]').forEach(e => { e.style.outline = '3px solid #e63946'; e.style.outlineOffset = '2px'; })"""
+
+
+def investigate(url: str, test_allow=(), replay=False):
     """Run the dynamic investigation. Returns a dict shaped like sandbox.inspect()."""
     from playwright.sync_api import sync_playwright
 
@@ -117,7 +136,18 @@ def investigate(url: str, test_allow=()):
         result["error"] = str(e)
         return result
 
-    state = {"capturing": False, "requests": 0, "blocked": [], "captured": [], "nav_chain": []}
+    state = {"capturing": False, "requests": 0, "blocked": [], "captured": [], "nav_chain": [], "net": []}
+    steps = []
+    t_start = time.time()
+
+    def step(title, detail, image=None):
+        steps.append({"t": round(time.time() - t_start, 1), "title": title, "detail": detail, "image": image})
+
+    def net(method, u, outcome, rtype=""):
+        if len(state["net"]) < 80:
+            pu = urlparse(u)
+            state["net"].append({"method": method, "host": pu.hostname or pu.scheme, "path": (pu.path or "/")[:70],
+                                 "type": rtype, "outcome": outcome})
     deadline = time.time() + MAX_TOTAL_S
     allowed_cache = {}
 
@@ -151,9 +181,11 @@ def investigate(url: str, test_allow=()):
             u = request.url
             state["requests"] += 1
             if state["requests"] > MAX_REQUESTS or request.resource_type in ("media", "font", "websocket", "eventsource"):
+                net(request.method, u, "refused by sandbox limits", request.resource_type)
                 return route.abort()
             if not host_ok(u):
                 state["blocked"].append(u[:200])
+                net(request.method, u, "BLOCKED: internal address", request.resource_type)
                 return route.abort()
             if state["capturing"]:
                 is_nav = request.is_navigation_request() and request.frame == page.main_frame
@@ -165,7 +197,9 @@ def investigate(url: str, test_allow=()):
                         "carries_synthetic_otp": bool(re.search(r"(^|[=&\":,])000000($|[&\",}])", body + u)),
                         "carries_synthetic_card": SYN["card"] in body or SYN["card"] in u,
                     })
+                    net(request.method, u, "CANCELLED: data never left the sandbox", request.resource_type)
                     return route.abort()
+            net(request.method, u, "allowed (read only)", request.resource_type)
             return route.continue_()
 
         ctx.route("**/*", handler)
@@ -183,6 +217,10 @@ def investigate(url: str, test_allow=()):
         result.update(fetched=True, status=resp.status if resp else None, final_url=page.url,
                       title=(page.title() or "")[:200], redirect_chain=state["nav_chain"][:8])
         page_domain = brands.registered_domain(urlparse(page.url).hostname or "")
+        if replay:
+            step("Opened the page in an isolated browser",
+                 f"Title: {(page.title() or '(none)')[:80]}. A fresh browser with no cookies, no logins and no saved data. Nothing of yours is inside it.",
+                 _shot(page, "opened"))
 
         requested, forms_out, rounds = {}, [], []
         for rnd in range(MAX_ROUNDS):
@@ -211,12 +249,28 @@ def investigate(url: str, test_allow=()):
                     continue
             if not filled:
                 break
+            if replay:
+                try:
+                    page.evaluate(HIGHLIGHT_JS)
+                except Exception:
+                    pass
+                step(f"Round {rnd + 1}: the page asks for {len(filled)} thing(s). PHISH-X types FAKE data",
+                     "Typed: " + ", ".join(f"{f['label']} = {SYN[LABEL_TO_KEY.get(f['label'], 'text')]}" for f in filled)
+                     + ". Highlighted in red in the screenshot. These values are made up, never your real details.", _shot(page, "filled"))
             before = len(state["captured"])
             state["capturing"] = True
             how = page.evaluate(SUBMIT_JS)
             page.wait_for_timeout(2500)
             state["capturing"] = False
             new = state["captured"][before:]
+            if replay:
+                if new:
+                    dests = ", ".join(sorted({(urlparse(c["url"]).hostname or "?") for c in new}))
+                    step(f"Pressed submit. PHISH-X cancelled {len(new)} request(s)",
+                         f"The page tried to send the fake data to: {dests}. The request was stopped inside the sandbox, so nothing was delivered.",
+                         _shot(page, "submitted"))
+                else:
+                    step("Pressed the button. No data left the page yet", "The page did not send anything this time. Multi-step kits often reveal the next question first, so PHISH-X keeps going.", _shot(page, "submitted"))
             rounds.append({"round": rnd + 1, "filled": [f["label"] for f in filled], "submit_method": how,
                            "submissions_cancelled": len(new)})
             for cap in new:
@@ -260,6 +314,18 @@ def investigate(url: str, test_allow=()):
     if not info:
         findings.append("No data-collection fields were visible after the page's scripts ran.")
 
+    if replay:
+        sends = [f for f in forms_out]
+        step("Result", "; ".join(findings[:3]) or "No suspicious behaviour observed.")
+        result["replay"] = {
+            "steps": steps, "network": state["net"],
+            "flow": {"page_host": urlparse(result.get("final_url") or url).hostname,
+                     "fake_values": [f"{k}" for k in requested.keys()],
+                     "destinations": sorted({urlparse(f["action"]).hostname or "?" for f in sends}),
+                     "other_domain": any(f["sends_to_other_domain"] for f in sends),
+                     "cancelled": len(state["captured"]), "blocked": len(state["blocked"]),
+                     "real_data_used": 0},
+        }
     result.update(forms=forms_out, information_requested=info, likely_objectives=static._infer_objectives(info),
                   findings=findings, blocked_requests=state["blocked"],
                   interaction=f"{len(rounds)} round(s): filled synthetic data and cancelled {len(state['captured'])} submission(s); nothing was sent",

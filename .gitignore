@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
-models/*.joblib
-!models/email_text.joblib
+models/random_forest.joblib
 data/raw_urls.csv
 *.log
+build/
+dist/

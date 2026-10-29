@@ -51,7 +51,8 @@ details{border-top:1px solid var(--line);padding:10px 0}summary{cursor:pointer;f
  <div id="pLink">
   <input id="url" placeholder="Paste a link, e.g. http://sbi-kyc-update-online.in/verify/login.php" autocomplete="off">
   <div class="row"><button class="go" id="bCheck">Check link</button><button class="alt" id="bBox">Open it in the sandbox</button><button class="alt" id="bAgent">Full investigation</button></div>
-  <div class="hint">Try: <a data-ex="http://sbi-kyc-update-online.in/verify/login.php">fake bank link</a> · <a data-ex="http://paypa1-secure-login.top/signin">PayPal look-alike</a> · <a data-ex="https://www.wikipedia.org/">Wikipedia</a></div>
+  <div class="hint">Try: <a data-ex="http://sbi-kyc-update-online.in/verify/login.php">fake bank link</a> · <a data-ex="http://paypa1-secure-login.top/signin">PayPal look-alike</a> · <a data-ex="https://www.wikipedia.org/">Wikipedia</a> · <a data-ex="http://127.0.0.1:9100/fake_phishing_page.html">demo fake bank page*</a> · <a data-ex="http://127.0.0.1:9100/js_kit_page.html">demo 3-step kit*</a></div>
+  <div class="hint">*Demo pages work after you run <b>start_demo.bat</b>. They let the sandbox replay show real fake-data typing.</div>
   <div class="hint"><b>Check link</b> is instant. <b>Sandbox</b> opens the page in an isolated browser and fills fake data to see what it asks for. <b>Full investigation</b> lets the agent choose the checks.</div>
  </div>
  <div id="pMail" hidden>
@@ -74,6 +75,7 @@ details{border-top:1px solid var(--line);padding:10px 0}summary{cursor:pointer;f
 <section class="card"><h2>Recent checks</h2><p class="sub">Kept in memory only. Never saved to disk.</p>
  <div class="live" id="live"></div><div id="recent" style="margin-top:10px"></div></section>
 </main>
+<script src="/replay.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 // Everything is inserted with textContent so text from a hostile site can never become markup.
@@ -114,7 +116,7 @@ async function run(fn,b){b.disabled=true;const o=$("result");o.hidden=false;o.re
  try{await fn()}catch(e){o.replaceChildren(el("p","Something went wrong: "+e.message+". Is the PHISH-X service still running?","note"))}b.disabled=false;load()}
 const U=()=>{const v=$("url").value.trim();if(!v)throw new Error("paste a link first");return v};
 $("bCheck").onclick=e=>run(async()=>show(await post("/check",{url:U()})),e.target);
-$("bBox").onclick=e=>run(async()=>show(await post("/sandbox",{url:U()})),e.target);
+$("bBox").onclick=e=>run(async()=>{const r=await post("/sandbox",{url:U(),replay:true});show(r);window.renderReplay($("result"),r.page)},e.target);
 $("bAgent").onclick=e=>run(async()=>show(await post("/agent",{url:U()})),e.target);
 $("bMail").onclick=e=>run(async()=>show(await post("/email",{raw:$("eml").value})),e.target);
 $("bSample").onclick=()=>{$("eml").value="From: \"SBI Customer Care\" <support@sbi-kyc-update-online.in>\nReply-To: helpdesk@mail-collector.top\nSubject: URGENT: Your account will be suspended within 24 hours - update KYC\nContent-Type: text/plain\n\nDear Customer, your account has been blocked due to incomplete KYC. Verify your account immediately or it will be permanently closed.\nhttp://sbi-kyc-update-online.in/verify/login.php\nEnter your OTP and card details to confirm your identity. Security Team"};

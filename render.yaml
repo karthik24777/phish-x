@@ -1,0 +1,7 @@
+# One-click deploy on Render (free plan): render.com -> New -> Blueprint -> pick this repo.
+services:
+  - type: web
+    name: phish-x
+    runtime: docker
+    plan: free
+    healthCheckPath: /health

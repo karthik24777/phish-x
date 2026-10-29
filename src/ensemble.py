@@ -21,11 +21,26 @@ class Ensemble:
         return np.vstack([1 - p, p]).T
 
 
+class XGBOnly:
+    """LITE mode: XGBoost alone (about 3 MB). Used on phones/servers/the Windows app, where the 400 MB
+    Random Forest is not shipped. Measured accuracy is within about 1 point of the full ensemble."""
+
+    def __init__(self, xgb):
+        self.xgb = xgb
+
+    def predict_proba(self, X):
+        return self.xgb.predict_proba(np.asarray(X, dtype=float))
+
+
 def load_all(model_dir=MODEL_DIR):
+    import os
     d = Path(model_dir)
+    xgb = joblib.load(d / "xgboost.joblib")
+    full = (d / "random_forest.joblib").exists() and os.environ.get("PHISHX_LITE") != "1"
+    if not full:
+        return {"lr": None, "scaler": None, "rf": None, "xgb": xgb, "ensemble": XGBOnly(xgb), "mode": "lite"}
     lr = joblib.load(d / "logistic_regression.joblib")
     scaler = joblib.load(d / "scaler.joblib")
     rf = joblib.load(d / "random_forest.joblib")
-    xgb = joblib.load(d / "xgboost.joblib")
     return {"lr": lr, "scaler": scaler, "rf": rf, "xgb": xgb,
-            "ensemble": Ensemble(lr, scaler, rf, xgb)}
+            "ensemble": Ensemble(lr, scaler, rf, xgb), "mode": "full"}
